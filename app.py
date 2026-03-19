@@ -19,8 +19,6 @@ VOLUME_THRESHOLD = 400
 PAUSE_THRESHOLD = 0.3  
 
 # ================= 選單與語言對應設定 =================
-
-# 1. 語音模型對應 (解決 Windows 中文路徑亂碼問題)
 SPEECH_MODELS = {
     "英文 (快速)": "en_fast",
     "英文 (品質佳)": "en_quality",
@@ -28,7 +26,6 @@ SPEECH_MODELS = {
     "日文 (品質佳)": "ja_quality"
 }
 
-# 2. 翻譯語言選項字典
 LANGUAGE_OPTIONS = {
     "繁體中文 (台灣)": {"google": "zh-TW", "ai": "Traditional Chinese (Taiwan)"},
     "简体中文": {"google": "zh-CN", "ai": "Simplified Chinese"},
@@ -43,19 +40,18 @@ class UltimateCourseApp:
         self.root = tk.Tk()
         self.root.title("AI 課程翻譯工作台 (自訂API版)")
         
-        # --- 動態掃描可用模型 ---
         self.available_models = self.scan_models()
         if not self.available_models:
             messagebox.showerror("錯誤", f"找不到語音模型！\n請確認 '{BASE_MODEL_DIR}' 內有正確的英文資料夾 (如 en_fast)。")
             sys.exit()
 
-        # UI 變數設定
         self.target_lang_var = tk.StringVar(value="繁體中文 (台灣)")
         self.speech_model_var = tk.StringVar(value=self.available_models[0])
-        
-        # 新增：API 與模型的變數 (預設填入 Ollama 的常見設定)
         self.api_url_var = tk.StringVar(value="http://127.0.0.1:11434/v1/chat/completions")
         self.model_name_var = tk.StringVar(value="gemma3:12b")
+        
+        # 新增變數：記錄進階設定是否展開
+        self.is_advanced_shown = False
         
         self.setup_window()
         
@@ -65,7 +61,6 @@ class UltimateCourseApp:
         self.is_loading_model = False
         self.pending_vosk_model = None
         
-        # 初始載入第一個模型
         initial_folder = self.get_folder_name(self.available_models[0])
         initial_model_path = os.path.join(BASE_MODEL_DIR, initial_folder)
         self.vosk_model = Model(initial_model_path)
@@ -92,8 +87,7 @@ class UltimateCourseApp:
 
     def setup_window(self):
         sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
-        # 稍微加高視窗以容納新的輸入框
-        win_w, win_h = int(sw * 0.85), 320
+        win_w, win_h = int(sw * 0.85), 320 # 保持稍微寬裕的高度
         self.root.geometry(f"{win_w}x{win_h}+{int(sw*0.075)}+{sh-380}")
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
@@ -103,7 +97,7 @@ class UltimateCourseApp:
         self.paned = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, bg='#333333', sashwidth=4)
         self.paned.pack(fill='both', expand=True)
 
-        # 左欄 (顯示區)
+        # 左欄
         self.left_frame = tk.Frame(self.paned, bg='#1c1c1c')
         self.paned.add(self.left_frame, width=win_w*0.55)
         self.en_label = tk.Label(self.left_frame, text="System Ready...", font=("Consolas", 16, "italic"), fg="#00FF00", bg="#1c1c1c", anchor='nw', justify='left', wraplength=int(win_w*0.5))
@@ -111,28 +105,14 @@ class UltimateCourseApp:
         self.zh_label = tk.Label(self.left_frame, text="等待語音...", font=("Microsoft JhengHei", 24, "bold"), fg="#FFFFFF", bg="#1c1c1c", anchor='nw', justify='left', wraplength=int(win_w*0.5))
         self.zh_label.pack(fill='x', padx=25, pady=10)
 
-        # 右欄 (控制區)
+        # 右欄
         self.right_frame = tk.Frame(self.paned, bg='#252525')
         self.paned.add(self.right_frame, width=win_w*0.45)
         
         ctrl_frame = tk.Frame(self.right_frame, bg='#252525')
         ctrl_frame.pack(fill='x', padx=5, pady=5)
         
-        # 1. API 網址輸入框 (新增)
-        row_api = tk.Frame(ctrl_frame, bg='#252525')
-        row_api.pack(fill='x', pady=2)
-        tk.Label(row_api, text="🔗 API 網址:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
-        self.api_entry = ttk.Entry(row_api, textvariable=self.api_url_var)
-        self.api_entry.pack(side='left', fill='x', expand=True, padx=5)
-
-        # 2. AI 模型名稱輸入框 (新增)
-        row_model_name = tk.Frame(ctrl_frame, bg='#252525')
-        row_model_name.pack(fill='x', pady=2)
-        tk.Label(row_model_name, text="🤖 AI 模型:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
-        self.model_name_entry = ttk.Entry(row_model_name, textvariable=self.model_name_var)
-        self.model_name_entry.pack(side='left', fill='x', expand=True, padx=5)
-        
-        # 3. 語音模型下拉選單
+        # 1. 語音模型與語言 (常駐顯示)
         row1 = tk.Frame(ctrl_frame, bg='#252525')
         row1.pack(fill='x', pady=2)
         tk.Label(row1, text="🎙️ 聽寫模型:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
@@ -140,12 +120,31 @@ class UltimateCourseApp:
         self.model_combo.pack(side='left', fill='x', expand=True, padx=5)
         self.model_combo.bind("<<ComboboxSelected>>", self.on_model_change)
 
-        # 4. 輸出語言下拉選單
         row2 = tk.Frame(ctrl_frame, bg='#252525')
         row2.pack(fill='x', pady=2)
         tk.Label(row2, text="🌐 輸出語言:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
         self.lang_combo = ttk.Combobox(row2, textvariable=self.target_lang_var, values=list(LANGUAGE_OPTIONS.keys()), state="readonly", width=18)
         self.lang_combo.pack(side='left', fill='x', expand=True, padx=5)
+
+        # 2. 展開/收合按鈕
+        self.toggle_btn = tk.Button(ctrl_frame, text="🔽 展開進階設定 (API)", font=("Microsoft JhengHei", 9), bg="#444444", fg="#FFFFFF", relief="flat", command=self.toggle_advanced)
+        self.toggle_btn.pack(fill='x', pady=(5, 0), padx=5)
+
+        # 3. 進階設定區域 (預設隱藏)
+        self.advanced_frame = tk.Frame(ctrl_frame, bg='#252525')
+        # 這裡不寫 pack()，等按鈕被點擊時才 pack
+        
+        row_api = tk.Frame(self.advanced_frame, bg='#252525')
+        row_api.pack(fill='x', pady=2)
+        tk.Label(row_api, text="🔗 API 網址:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
+        self.api_entry = ttk.Entry(row_api, textvariable=self.api_url_var)
+        self.api_entry.pack(side='left', fill='x', expand=True, padx=5)
+
+        row_model_name = tk.Frame(self.advanced_frame, bg='#252525')
+        row_model_name.pack(fill='x', pady=2)
+        tk.Label(row_model_name, text="🤖 AI 模型:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
+        self.model_name_entry = ttk.Entry(row_model_name, textvariable=self.model_name_var)
+        self.model_name_entry.pack(side='left', fill='x', expand=True, padx=5)
 
         # Log 區域
         self.log_area = scrolledtext.ScrolledText(self.right_frame, font=("Microsoft JhengHei", 11), bg="#101010", fg="#CCCCCC", state='disabled', borderwidth=0)
@@ -157,6 +156,16 @@ class UltimateCourseApp:
         self.menu.add_separator()
         self.menu.add_command(label="❌ 關閉程式", command=self.on_close)
         self.root.bind("<Button-3>", lambda e: self.menu.post(e.x_root, e.y_root))
+
+    def toggle_advanced(self):
+        """切換進階設定介面的顯示與隱藏"""
+        self.is_advanced_shown = not self.is_advanced_shown
+        if self.is_advanced_shown:
+            self.toggle_btn.config(text="🔼 收合進階設定 (API)")
+            self.advanced_frame.pack(fill='x', pady=(2, 0)) # 顯示進階區域
+        else:
+            self.toggle_btn.config(text="🔽 展開進階設定 (API)")
+            self.advanced_frame.pack_forget() # 隱藏進階區域
 
     def on_model_change(self, event=None):
         selected_display = self.speech_model_var.get()
@@ -252,7 +261,6 @@ class UltimateCourseApp:
         threading.Thread(target=self._ai_with_fallback, args=(text,), daemon=True).start()
 
     def _ai_with_fallback(self, text):
-        # 取得使用者目前在介面上輸入的 API 網址與模型名稱
         current_api_url = self.api_url_var.get().strip()
         current_model_name = self.model_name_var.get().strip()
         
