@@ -17,13 +17,10 @@ BASE_MODEL_DIR = "model"
 
 VOLUME_THRESHOLD = 400 
 PAUSE_THRESHOLD = 0.3  
-API_URL = "http://這邊填入你的對應AI的位置/v1/chat/completions"
-MODEL_NAME = "gemma3:12b"
 
 # ================= 選單與語言對應設定 =================
 
 # 1. 語音模型對應 (解決 Windows 中文路徑亂碼問題)
-# 左邊是「選單顯示名稱」，右邊是「實際英文資料夾名稱」
 SPEECH_MODELS = {
     "英文 (快速)": "en_fast",
     "英文 (品質佳)": "en_quality",
@@ -44,7 +41,7 @@ LANGUAGE_OPTIONS = {
 class UltimateCourseApp:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("AI 課程翻譯工作台 (防亂碼穩定版)")
+        self.root.title("AI 課程翻譯工作台 (自訂API版)")
         
         # --- 動態掃描可用模型 ---
         self.available_models = self.scan_models()
@@ -52,8 +49,13 @@ class UltimateCourseApp:
             messagebox.showerror("錯誤", f"找不到語音模型！\n請確認 '{BASE_MODEL_DIR}' 內有正確的英文資料夾 (如 en_fast)。")
             sys.exit()
 
+        # UI 變數設定
         self.target_lang_var = tk.StringVar(value="繁體中文 (台灣)")
         self.speech_model_var = tk.StringVar(value=self.available_models[0])
+        
+        # 新增：API 與模型的變數 (預設填入 Ollama 的常見設定)
+        self.api_url_var = tk.StringVar(value="http://127.0.0.1:11434/v1/chat/completions")
+        self.model_name_var = tk.StringVar(value="gemma3:12b")
         
         self.setup_window()
         
@@ -63,7 +65,7 @@ class UltimateCourseApp:
         self.is_loading_model = False
         self.pending_vosk_model = None
         
-        # 初始載入第一個模型 (轉換回英文資料夾名)
+        # 初始載入第一個模型
         initial_folder = self.get_folder_name(self.available_models[0])
         initial_model_path = os.path.join(BASE_MODEL_DIR, initial_folder)
         self.vosk_model = Model(initial_model_path)
@@ -71,16 +73,11 @@ class UltimateCourseApp:
         threading.Thread(target=self.vosk_loop, daemon=True).start()
 
     def scan_models(self):
-        """掃描實體英文資料夾，轉換成選單顯示的中文"""
         if not os.path.exists(BASE_MODEL_DIR): return []
         available = []
-        
-        # 1. 先比對字典中設定好的對應關係
         for display_name, folder_name in SPEECH_MODELS.items():
             if os.path.isdir(os.path.join(BASE_MODEL_DIR, folder_name)):
                 available.append(display_name)
-                
-        # 2. 如果使用者放了其他的英文資料夾，直接顯示原名
         for d in os.listdir(BASE_MODEL_DIR):
             if os.path.isdir(os.path.join(BASE_MODEL_DIR, d)):
                 if d not in SPEECH_MODELS.values() and d not in available:
@@ -88,16 +85,16 @@ class UltimateCourseApp:
         return available
 
     def get_folder_name(self, display_name):
-        """將使用者在選單選的中文，轉回實體英文資料夾名稱"""
         for name, folder in SPEECH_MODELS.items():
             if name == display_name:
                 return folder
-        return display_name # 如果字典沒有，代表是自訂英文資料夾
+        return display_name 
 
     def setup_window(self):
         sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
-        win_w, win_h = int(sw * 0.85), 280
-        self.root.geometry(f"{win_w}x{win_h}+{int(sw*0.075)}+{sh-340}")
+        # 稍微加高視窗以容納新的輸入框
+        win_w, win_h = int(sw * 0.85), 320
+        self.root.geometry(f"{win_w}x{win_h}+{int(sw*0.075)}+{sh-380}")
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
         self.root.attributes("-alpha", 0.9)
@@ -106,7 +103,7 @@ class UltimateCourseApp:
         self.paned = tk.PanedWindow(self.root, orient=tk.HORIZONTAL, bg='#333333', sashwidth=4)
         self.paned.pack(fill='both', expand=True)
 
-        # 左欄
+        # 左欄 (顯示區)
         self.left_frame = tk.Frame(self.paned, bg='#1c1c1c')
         self.paned.add(self.left_frame, width=win_w*0.55)
         self.en_label = tk.Label(self.left_frame, text="System Ready...", font=("Consolas", 16, "italic"), fg="#00FF00", bg="#1c1c1c", anchor='nw', justify='left', wraplength=int(win_w*0.5))
@@ -114,28 +111,45 @@ class UltimateCourseApp:
         self.zh_label = tk.Label(self.left_frame, text="等待語音...", font=("Microsoft JhengHei", 24, "bold"), fg="#FFFFFF", bg="#1c1c1c", anchor='nw', justify='left', wraplength=int(win_w*0.5))
         self.zh_label.pack(fill='x', padx=25, pady=10)
 
-        # 右欄
+        # 右欄 (控制區)
         self.right_frame = tk.Frame(self.paned, bg='#252525')
         self.paned.add(self.right_frame, width=win_w*0.45)
         
         ctrl_frame = tk.Frame(self.right_frame, bg='#252525')
         ctrl_frame.pack(fill='x', padx=5, pady=5)
         
+        # 1. API 網址輸入框 (新增)
+        row_api = tk.Frame(ctrl_frame, bg='#252525')
+        row_api.pack(fill='x', pady=2)
+        tk.Label(row_api, text="🔗 API 網址:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
+        self.api_entry = ttk.Entry(row_api, textvariable=self.api_url_var)
+        self.api_entry.pack(side='left', fill='x', expand=True, padx=5)
+
+        # 2. AI 模型名稱輸入框 (新增)
+        row_model_name = tk.Frame(ctrl_frame, bg='#252525')
+        row_model_name.pack(fill='x', pady=2)
+        tk.Label(row_model_name, text="🤖 AI 模型:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
+        self.model_name_entry = ttk.Entry(row_model_name, textvariable=self.model_name_var)
+        self.model_name_entry.pack(side='left', fill='x', expand=True, padx=5)
+        
+        # 3. 語音模型下拉選單
         row1 = tk.Frame(ctrl_frame, bg='#252525')
         row1.pack(fill='x', pady=2)
         tk.Label(row1, text="🎙️ 聽寫模型:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
         self.model_combo = ttk.Combobox(row1, textvariable=self.speech_model_var, values=self.available_models, state="readonly", width=18)
-        self.model_combo.pack(side='left', padx=5)
+        self.model_combo.pack(side='left', fill='x', expand=True, padx=5)
         self.model_combo.bind("<<ComboboxSelected>>", self.on_model_change)
 
+        # 4. 輸出語言下拉選單
         row2 = tk.Frame(ctrl_frame, bg='#252525')
         row2.pack(fill='x', pady=2)
         tk.Label(row2, text="🌐 輸出語言:", font=("Microsoft JhengHei", 10), fg="#AAAAAA", bg='#252525', width=10, anchor='e').pack(side='left')
         self.lang_combo = ttk.Combobox(row2, textvariable=self.target_lang_var, values=list(LANGUAGE_OPTIONS.keys()), state="readonly", width=18)
-        self.lang_combo.pack(side='left', padx=5)
+        self.lang_combo.pack(side='left', fill='x', expand=True, padx=5)
 
+        # Log 區域
         self.log_area = scrolledtext.ScrolledText(self.right_frame, font=("Microsoft JhengHei", 11), bg="#101010", fg="#CCCCCC", state='disabled', borderwidth=0)
-        self.log_area.pack(fill='both', expand=True, padx=5, pady=(0, 5))
+        self.log_area.pack(fill='both', expand=True, padx=5, pady=(5, 5))
 
         self.menu = Menu(self.root, tearoff=0)
         self.menu.add_command(label="💾 儲存今日課程檔", command=self.save_log)
@@ -153,7 +167,6 @@ class UltimateCourseApp:
     def _load_new_model_task(self, selected_display):
         self.is_loading_model = True
         try:
-            # 轉換為真實資料夾名稱
             folder_name = self.get_folder_name(selected_display)
             path = os.path.join(BASE_MODEL_DIR, folder_name)
             new_model = Model(path)
@@ -239,9 +252,13 @@ class UltimateCourseApp:
         threading.Thread(target=self._ai_with_fallback, args=(text,), daemon=True).start()
 
     def _ai_with_fallback(self, text):
+        # 取得使用者目前在介面上輸入的 API 網址與模型名稱
+        current_api_url = self.api_url_var.get().strip()
+        current_model_name = self.model_name_var.get().strip()
+        
         ai_target = self.get_current_langs()["ai"]
         payload = {
-            "model": MODEL_NAME,
+            "model": current_model_name,
             "messages": [
                 {"role": "system", "content": f"You are a professional translator. Translate to natural {ai_target}. Only output the translation."},
                 {"role": "user", "content": text}
@@ -249,19 +266,19 @@ class UltimateCourseApp:
             "temperature": 0.3, "stream": False
         }
         try:
-            response = requests.post(API_URL, json=payload, timeout=12)
+            response = requests.post(current_api_url, json=payload, timeout=12)
             if response.status_code == 200:
                 zh_res = response.json()['choices'][0]['message']['content'].strip()
                 self.append_log(text, zh_res)
             else:
-                raise Exception("Server Error")
+                raise Exception(f"Server Error {response.status_code}")
         except Exception as e:
             try:
                 target_code = self.get_current_langs()["google"]
                 fallback_zh = GoogleTranslator(source='auto', target=target_code).translate(text)
-                self.append_log(text, f"{fallback_zh} (Google 備援)")
+                self.append_log(text, f"{fallback_zh} (Google 備援: {e})")
             except:
-                self.append_log(text, "[網路完全離線 - 僅存原文]")
+                self.append_log(text, "[網路或 API 錯誤 - 僅存原文]")
 
     def update_ui_en(self, text): self.root.after(0, lambda: self.en_label.config(text=text))
     def update_ui_zh(self, text): self.root.after(0, lambda: self.zh_label.config(text=text))
